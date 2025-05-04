@@ -398,6 +398,9 @@ class PosturePalApp:
             results = pose.process(rgb_frame)
 
             if results.pose_landmarks:
+                self.start_time.resume()
+                self.good_time.resume()
+
                 landmarks = results.pose_landmarks.landmark
                 head = landmarks[mp_pose.PoseLandmark.NOSE]
                 left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER]
@@ -472,6 +475,11 @@ class PosturePalApp:
 
                     self.posture_status_label.configure(text="Posture Status: Good Posture", text_color="green")
                     self.posture_status_label.update()
+            else: # This ensures no detection is made, the timer is paused and the posture status is set to None
+                self.posture_status_label.configure(text="Posture Status: None", text_color="white")
+                self.posture_status_label.update()
+                self.start_time.pause()
+                self.good_time.pause()
 
     def initialize_statistics(self):
         # update the total_time, good_posture_time, and bad_posture_time with data from the database with today's date
