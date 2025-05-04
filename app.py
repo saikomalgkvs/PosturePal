@@ -196,30 +196,33 @@ class PosturePalApp:
     def update_database(self):
         today = date.today().strftime("%Y-%m-%d")
         
-        # Create a new connection and cursor for this thread
-        with sqlite3.connect(os.path.join(BASE_DIR, "posture_data.db")) as conn:
-            cursor = conn.cursor()
-            
-            cursor.execute("SELECT * FROM posture_data WHERE date = ?", (today,))
-            row = cursor.fetchone()
+        # Calculate the new elapsed times
+        new_good_posture_time = self.good_time.get_elapsed_time()
+        new_total_time = self.start_time.get_elapsed_time()
+        new_bad_time = new_total_time - new_good_posture_time
+    
+        # Use the existing connection and cursor
+        self.cursor.execute("SELECT * FROM posture_data WHERE date = ?", (today,))
+        row = self.cursor.fetchone()
         
-            if row:
-                # Update the existing row
-                cursor.execute("""
-                    UPDATE posture_data
-                    SET good_posture_duration = good_posture_duration + ?,
-                        bad_posture_duration = bad_posture_duration + ?,
-                        total_monitoring_time = total_monitoring_time + ?
-                    WHERE date = ?
-                """, (int(self.good_posture_time), int(self.bad_time), int(self.total_time), today))
-            else:
-                # Insert a new row
-                cursor.execute("""
-                    INSERT INTO posture_data (date, good_posture_duration, bad_posture_duration, total_monitoring_time)
-                    VALUES (?, ?, ?, ?)
-                """, (today, int(self.good_posture_time), int(self.bad_time), int(self.total_time)))
-            
-            conn.commit()
+        if row:
+            # Update the existing row with only the new elapsed times
+            self.cursor.execute("""
+            UPDATE posture_data
+            SET good_posture_duration = good_posture_duration + ?,
+                bad_posture_duration = bad_posture_duration + ?,
+                total_monitoring_time = total_monitoring_time + ?
+            WHERE date = ?
+            """, (int(new_good_posture_time), int(new_bad_time), int(new_total_time), today))
+        else:
+            # Insert a new row
+            self.cursor.execute("""
+            INSERT INTO posture_data (date, good_posture_duration, bad_posture_duration, total_monitoring_time)
+            VALUES (?, ?, ?, ?)
+            """, (today, int(new_good_posture_time), int(new_bad_time), int(new_total_time)))
+        
+        self.conn.commit()
+
     def fetch_weekly_data(self):
         # Get the current week's dates
         today = date.today()
@@ -469,8 +472,6 @@ class PosturePalApp:
 
                     self.posture_status_label.configure(text="Posture Status: Good Posture", text_color="green")
                     self.posture_status_label.update()
-            else:
-                self.toggle_monitoring()
 
     def initialize_statistics(self):
         # update the total_time, good_posture_time, and bad_posture_time with data from the database with today's date
