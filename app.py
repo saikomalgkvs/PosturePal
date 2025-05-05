@@ -366,7 +366,9 @@ class PosturePalApp:
             self.posture_status_label.configure(text="Posture Status: None", text_color="white")
             self.posture_status_label.update()
             self.update_statistics()
-            self.update_database()  # Update the database with the monitoring data
+            self.update_database()
+            self.update_pie_chart()
+            self.update_barchart()
 
         else:
             self.is_monitoring = True
@@ -490,6 +492,11 @@ class PosturePalApp:
             self.total_time = row[3]
             self.good_posture_time = row[1]
             self.bad_time = row[2]
+        else:
+            self.total_time = 0
+            self.good_posture_time = 0
+            self.bad_time = 0
+            self.corrections = 0
 
     def update_statistics(self):
 
@@ -509,13 +516,14 @@ class PosturePalApp:
             self.bad_posture_label.update()
 
     def update_pie_chart(self):
-        # Calculate percentages for the pie chart
+        
         if self.total_time > 0:
             good_percentage = (self.good_posture_time / self.total_time) * 100
             bad_percentage = (self.bad_time / self.total_time) * 100
         else:
             good_percentage = 0
             bad_percentage = 0
+            return
 
         # Create the pie chart
         figure = Figure(figsize=(6, 4), dpi=100)
