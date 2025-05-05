@@ -303,38 +303,56 @@ class PosturePalApp:
         self.capture_window.title("Capture Posture Data")
         self.capture_window.geometry("500x300")
 
-        self.capture_window.lift()
-        self.capture_window.focus_force()
-        
-        # Create labels and entry fields for good and bad posture
+        # Ensure the new window stays on top of the main application window
+        self.capture_window.transient(self.root)  # Make it a child window
+        self.capture_window.grab_set()  # Prevent interaction with the main window until this one is closed
+        self.capture_window.focus_force()  # Bring the new window to the front
+
+        # Add padding and style the UI
+        self.capture_window.grid_rowconfigure(0, weight=1)
+        self.capture_window.grid_columnconfigure(0, weight=1)
+
+        # Create a frame with padding
+        capture_frame = ctk.CTkFrame(self.capture_window, corner_radius=10)
+        capture_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Add a caution label
         caution_label = ctk.CTkLabel(
-            self.capture_window,
+            capture_frame,
             text="Make sure you are in good/bad posture before capturing data.",
             text_color="red",
-            font=("Roboto", 20),
+            font=("Roboto", 16),
             pady=10,
-            padx=10,
         )
-        caution_label.grid(row=0, column=0, columnspan=2, pady=5, padx=10)
+        caution_label.grid(row=0, column=0, columnspan=2, pady=10)
 
-        # show the number of good postures
-        self.good_posture_count_label = ctk.CTkLabel(self.capture_window, text="Good Postures: {}".format(len(self.good_posture_data)))
-        self.good_posture_count_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        # Show the number of good postures
+        self.good_posture_count_label = ctk.CTkLabel(
+            capture_frame, text="Good Postures: {}".format(len(self.good_posture_data)), font=("Roboto", 14)
+        )
+        self.good_posture_count_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
 
-        self.good_posture_button = ctk.CTkButton(self.capture_window, text="Capture Good Posture", command=lambda: self.start_capture("good"))
-        self.good_posture_button.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+        self.good_posture_button = ctk.CTkButton(
+            capture_frame, text="Capture Good Posture", command=lambda: self.start_capture("good"), fg_color="blue"
+        )
+        self.good_posture_button.grid(row=1, column=1, padx=10, pady=10, sticky="w")
 
-        self.bad_posture_count_label = ctk.CTkLabel(self.capture_window, text="Bad Postures: {}".format(len(self.bad_posture_data)))
-        self.bad_posture_count_label.grid(row=2, column=0, padx=5, pady=5, sticky="w")
+        # Show the number of bad postures
+        self.bad_posture_count_label = ctk.CTkLabel(
+            capture_frame, text="Bad Postures: {}".format(len(self.bad_posture_data)), font=("Roboto", 14)
+        )
+        self.bad_posture_count_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
         self.bad_posture_button = ctk.CTkButton(
-            self.capture_window, text="Capture Bad Posture", command=lambda: self.start_capture("bad")
+            capture_frame, text="Capture Bad Posture", command=lambda: self.start_capture("bad"), fg_color="blue"
         )
-        self.bad_posture_button.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+        self.bad_posture_button.grid(row=2, column=1, padx=10, pady=10, sticky="w")
 
-
-        self.train_model_button = ctk.CTkButton(self.capture_window, text="Train Model", command=self.train_model_util)
-        self.train_model_button.grid(row=3, column=0, columnspan=2, pady=10, padx=10)
+        # Add a button to train the model
+        self.train_model_button = ctk.CTkButton(
+            capture_frame, text="Train Model", command=self.train_model_util, fg_color="green"
+        )
+        self.train_model_button.grid(row=3, column=0, columnspan=2, pady=20)
 
     def start_capture(self, posture_type):
         if posture_type == "good":
